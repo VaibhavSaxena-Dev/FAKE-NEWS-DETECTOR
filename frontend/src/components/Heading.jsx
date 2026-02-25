@@ -1,0 +1,7 @@
+export default function Heading({ children }) {
+  return (
+    <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-center mb-8 text-white">
+      {children}
+    </h1>
+  );
+}
