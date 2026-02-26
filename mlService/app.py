@@ -108,7 +108,7 @@ Text: {text}"""
     try:
         print("Calling Gemini API...")
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-2.5-flash-lite',
             contents=prompt
         )
         print("Gemini API responded successfully")
