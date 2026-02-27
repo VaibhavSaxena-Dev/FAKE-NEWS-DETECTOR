@@ -103,11 +103,13 @@ def check_facts(text):
     print("\n=== FACT CHECK STARTED ===")
     print(f"Text length: {len(text)}")
     
-    prompt = f"""Analyze the following text and determine if the facts are TRUE, FALSE, or INSUFFICIENT_INFORMATION.
+    prompt = f"""Analyze ALL claims in the following text and determine if the facts are TRUE, FALSE, or INSUFFICIENT_INFORMATION.
+
+IMPORTANT: If the text contains multiple claims, evaluate the OVERALL truthfulness. If ANY claim is false, the verdict should be FALSE.
 
 Respond ONLY in this format:
 Verdict: [TRUE/FALSE/INSUFFICIENT_INFORMATION]
-Reason: [Brief explanation]
+Reason: [Brief explanation addressing ALL claims]
 
 Text: {text}"""
 
