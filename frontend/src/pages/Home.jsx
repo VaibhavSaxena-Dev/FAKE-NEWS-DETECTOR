@@ -12,7 +12,8 @@ export default function Home() {
 
   useEffect(() => {
     // Warm up ML service on component mount
-    fetch('http://localhost:8000/health')
+    const mlServiceUrl = import.meta.env.VITE_ML_SERVICE_URL || 'http://localhost:8000';
+    fetch(`${mlServiceUrl}/health`)
       .then(() => {
         console.log('ML service warmed up');
         setIsFirstRequest(false);

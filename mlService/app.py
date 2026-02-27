@@ -98,7 +98,7 @@ def predict():
 # Gemini Fact Checking Function
 # ===============================
 
-def check_facts(text):
+def check_facts(text, max_retries=3):
     global gemini_ready
     print("\n=== FACT CHECK STARTED ===")
     print(f"Text length: {len(text)}")
@@ -113,57 +113,64 @@ Reason: [Brief explanation addressing ALL claims]
 
 Text: {text}"""
 
-    try:
-        print("Calling Gemini API...")
-        response = client.models.generate_content(
-            model='gemini-2.5-flash-lite',
-            contents=prompt
-        )
-        gemini_ready = True
-        print("Gemini API responded successfully")
-        response_text = response.text.strip()
-        print(f"Response: {response_text}")
+    for attempt in range(max_retries):
+        try:
+            print(f"Calling Gemini API... (Attempt {attempt + 1}/{max_retries})")
+            response = client.models.generate_content(
+                model='gemini-2.5-flash-lite',
+                contents=prompt
+            )
+            gemini_ready = True
+            print("Gemini API responded successfully")
+            response_text = response.text.strip()
+            print(f"Response: {response_text}")
 
-        verdict = "INSUFFICIENT_INFORMATION"
-        reason = "Unable to analyze"
+            verdict = "INSUFFICIENT_INFORMATION"
+            reason = "Unable to analyze"
 
-        lines = [line.strip() for line in response_text.split('\n') if line.strip()]
-        
-        # Collect all lines after finding Verdict
-        verdict_found = False
-        reason_lines = []
-        
-        for line in lines:
-            if "Verdict:" in line:
-                verdict = line.split("Verdict:", 1)[1].strip()
-                verdict_found = True
-                print(f"Found verdict: {verdict}")
-            elif "Reason:" in line and verdict_found:
-                # Get everything after "Reason:"
-                reason_lines.append(line.split("Reason:", 1)[1].strip())
-            elif verdict_found and reason_lines:
-                # Continue collecting reason lines
-                reason_lines.append(line)
-        
-        if reason_lines:
-            reason = ' '.join(reason_lines)
+            lines = [line.strip() for line in response_text.split('\n') if line.strip()]
+            
+            # Collect all lines after finding Verdict
+            verdict_found = False
+            reason_lines = []
+            
+            for line in lines:
+                if "Verdict:" in line:
+                    verdict = line.split("Verdict:", 1)[1].strip()
+                    verdict_found = True
+                    print(f"Found verdict: {verdict}")
+                elif "Reason:" in line and verdict_found:
+                    # Get everything after "Reason:"
+                    reason_lines.append(line.split("Reason:", 1)[1].strip())
+                elif verdict_found and reason_lines:
+                    # Continue collecting reason lines
+                    reason_lines.append(line)
+            
+            if reason_lines:
+                reason = ' '.join(reason_lines)
 
-        result = {
-            "verdict": verdict,
-            "reason": reason
-        }
-        print(f"Final result: {result}")
-        print("=== FACT CHECK COMPLETED ===")
-        return result
+            result = {
+                "verdict": verdict,
+                "reason": reason
+            }
+            print(f"Final result: {result}")
+            print("=== FACT CHECK COMPLETED ===")
+            return result
 
-    except Exception as e:
-        print("Gemini API Error:", str(e))
-        import traceback
-        traceback.print_exc()
-        return {
-            "verdict": "INSUFFICIENT_INFORMATION",
-            "reason": "Fact-checking service temporarily unavailable"
-        }
+        except Exception as e:
+            print(f"Gemini API Error (Attempt {attempt + 1}/{max_retries}):", str(e))
+            if attempt < max_retries - 1:
+                import time
+                wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
+                print(f"Retrying in {wait_time} seconds...")
+                time.sleep(wait_time)
+            else:
+                import traceback
+                traceback.print_exc()
+                return {
+                    "verdict": "INSUFFICIENT_INFORMATION",
+                    "reason": "Fact-checking service temporarily unavailable"
+                }
 
 # ===============================
 # Run Server
