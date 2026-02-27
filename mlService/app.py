@@ -31,6 +31,7 @@ vectorizer = joblib.load('structuralModel/vectorizer.pkl')
 # ===============================
 
 client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
+gemini_ready = False
 
 # ===============================
 # Text Cleaning Function
@@ -48,6 +49,10 @@ def wordopt(text):
 # ===============================
 # Prediction Route
 # ===============================
+
+@app.route('/health', methods=['GET'])
+def health():
+    return jsonify({'status': 'ready', 'model_loaded': model is not None})
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -94,6 +99,7 @@ def predict():
 # ===============================
 
 def check_facts(text):
+    global gemini_ready
     print("\n=== FACT CHECK STARTED ===")
     print(f"Text length: {len(text)}")
     
@@ -111,6 +117,7 @@ Text: {text}"""
             model='gemini-2.5-flash-lite',
             contents=prompt
         )
+        gemini_ready = True
         print("Gemini API responded successfully")
         response_text = response.text.strip()
         print(f"Response: {response_text}")

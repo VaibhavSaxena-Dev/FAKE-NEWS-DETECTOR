@@ -6,35 +6,23 @@ import os
 from dotenv import load_dotenv
 from google import genai
 
-# ===============================
-# Load Environment Variables
-# ===============================
-
 load_dotenv()
 
-# ===============================
-# Flask Setup
-# ===============================
 
 app = Flask(__name__)
 CORS(app)
 
-# ===============================
-# Load Structural ML Model
-# ===============================
+
 
 model = joblib.load('structuralModel/fake_news_model_opt.pkl')
 vectorizer = joblib.load('structuralModel/vectorizer_opt.pkl')
 
-# ===============================
-# Gemini Setup
-# ===============================
+
 
 client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
+gemini_ready = False
 
-# ===============================
-# Text Cleaning Function
-# ===============================
+
 
 def wordopt(text):
     text = text.lower()
@@ -45,9 +33,11 @@ def wordopt(text):
     text = re.sub(r'\n', ' ', text)
     return text.strip()
 
-# ===============================
-# Prediction Route
-# ===============================
+
+
+@app.route('/health', methods=['GET'])
+def health():
+    return jsonify({'status': 'ready', 'model_loaded': model is not None})
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -67,13 +57,13 @@ def predict():
                 'factCheck': fact_check_result
             })
 
-        # Structural Model Prediction
+       
         cleaned_text = wordopt(text)
         text_vectorized = vectorizer.transform([cleaned_text])
         prediction = model.predict(text_vectorized)[0]
         confidence = model.predict_proba(text_vectorized)[0]
 
-        # Fact Checking with Gemini
+       
         fact_check_result = check_facts(text)
 
         result = {
@@ -89,11 +79,10 @@ def predict():
         return jsonify({'error': str(e)}), 500
 
 
-# ===============================
-# Gemini Fact Checking Function
-# ===============================
+
 
 def check_facts(text):
+    global gemini_ready
     print("\n=== FACT CHECK STARTED ===")
     print(f"Text length: {len(text)}")
     
@@ -111,6 +100,7 @@ Text: {text}"""
             model='gemini-2.5-flash',
             contents=prompt
         )
+        gemini_ready = True
         print("Gemini API responded successfully")
         response_text = response.text.strip()
         print(f"Response: {response_text}")
@@ -144,9 +134,6 @@ Text: {text}"""
             "reason": "Fact-checking service temporarily unavailable"
         }
 
-# ===============================
-# Run Server
-# ===============================
 
 if __name__ == '__main__':
     app.run(port=8000, debug=True)

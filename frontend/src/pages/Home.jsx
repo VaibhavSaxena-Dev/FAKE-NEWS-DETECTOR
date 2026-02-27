@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Heading from '../components/Heading.jsx';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { api } from '../lib/api';
@@ -8,6 +8,13 @@ export default function Home() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const { user, token } = useAuth();
+
+  useEffect(() => {
+    // Warm up ML service on component mount
+    fetch('http://localhost:8000/health')
+      .then(() => console.log('ML service warmed up'))
+      .catch(() => console.log('ML service not ready yet'));
+  }, []);
 
   const checkArticle = async () => {
     if (!article.trim()) {
@@ -75,7 +82,7 @@ export default function Home() {
             disabled={loading}
             className="w-full bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
-            {loading ? 'Checking...' : 'Check'}
+            {loading ? 'Analyzing... (First request may take up to 3 minutes)' : 'Check'}
           </button>
 
           {result && (
@@ -84,7 +91,7 @@ export default function Home() {
               <div className="space-y-2">
                 <p className="text-lg">
                   <span className="font-semibold">Analysis:</span>{' '}
-                  {result.structure || 'Unknown'}
+                  {result.structure || 'Analysis unavailable - please try again'}
                 </p>
                 <p className="text-lg">
                   <span className="font-semibold">Confidence:</span>{' '}

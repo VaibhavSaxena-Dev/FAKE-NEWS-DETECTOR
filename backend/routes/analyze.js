@@ -18,7 +18,7 @@ router.post("/", async (req, res) => {
     console.log("Calling ML service at:", `${ML_URL}/predict`);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 sec for Render cold start
+    const timeoutId = setTimeout(() => controller.abort(), 180000); // 180 sec (3 min) for first request
 
     const mlResponse = await fetch(`${ML_URL}/predict`, {
       method: "POST",
