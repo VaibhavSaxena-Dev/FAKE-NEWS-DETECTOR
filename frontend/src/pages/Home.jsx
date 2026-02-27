@@ -7,12 +7,16 @@ export default function Home() {
   const [article, setArticle] = useState('');
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isFirstRequest, setIsFirstRequest] = useState(true);
   const { user, token } = useAuth();
 
   useEffect(() => {
     // Warm up ML service on component mount
     fetch('http://localhost:8000/health')
-      .then(() => console.log('ML service warmed up'))
+      .then(() => {
+        console.log('ML service warmed up');
+        setIsFirstRequest(false);
+      })
       .catch(() => console.log('ML service not ready yet'));
   }, []);
 
@@ -29,6 +33,9 @@ export default function Home() {
       console.log('API Response:', analysisResult);
 
       setResult(analysisResult);
+
+      // Mark first request as complete
+      setIsFirstRequest(false);
 
       if (user && token) {
         try {
@@ -82,7 +89,7 @@ export default function Home() {
             disabled={loading}
             className="w-full bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
-            {loading ? 'Analyzing... (First request may take up to 3 minutes)' : 'Check'}
+            {loading ? (isFirstRequest ? 'Analyzing... (First request may take up to 3 minutes)' : 'Analyzing...') : 'Check'}
           </button>
 
           {result && (

@@ -97,7 +97,7 @@ Text: {text}"""
     try:
         print("Calling Gemini API...")
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-2.5-flash-lite',
             contents=prompt
         )
         gemini_ready = True
@@ -109,13 +109,25 @@ Text: {text}"""
         reason = "Unable to analyze"
 
         lines = [line.strip() for line in response_text.split('\n') if line.strip()]
+        
+        # Collect all lines after finding Verdict
+        verdict_found = False
+        reason_lines = []
+        
         for line in lines:
             if "Verdict:" in line:
-                verdict = line.split("Verdict:")[1].strip()
+                verdict = line.split("Verdict:", 1)[1].strip()
+                verdict_found = True
                 print(f"Found verdict: {verdict}")
-            elif "Reason:" in line:
-                reason = line.split("Reason:")[1].strip()
-                print(f"Found reason: {reason}")
+            elif "Reason:" in line and verdict_found:
+                # Get everything after "Reason:"
+                reason_lines.append(line.split("Reason:", 1)[1].strip())
+            elif verdict_found and reason_lines:
+                # Continue collecting reason lines
+                reason_lines.append(line)
+        
+        if reason_lines:
+            reason = ' '.join(reason_lines)
 
         result = {
             "verdict": verdict,
@@ -131,7 +143,7 @@ Text: {text}"""
         traceback.print_exc()
         return {
             "verdict": "INSUFFICIENT_INFORMATION",
-            "reason": "Fact-checking service temporarily unavailable"
+            "reason": "Fact-checking service temporarily unavailable (api key limit reached )"
         }
 
 
