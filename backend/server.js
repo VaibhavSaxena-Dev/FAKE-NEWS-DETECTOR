@@ -8,6 +8,11 @@ import analyzeRoutes from './routes/analyze.js';
 
 dotenv.config();
 
+if (!process.env.JWT_SECRET) {
+  console.error('ERROR: JWT_SECRET is not defined in .env file');
+  process.exit(1);
+}
+
 const app = express();
 
 app.use(cors());
