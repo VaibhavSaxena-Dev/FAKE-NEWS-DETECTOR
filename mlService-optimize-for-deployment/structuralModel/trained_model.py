@@ -9,7 +9,7 @@ from sklearn.metrics import classification_report, accuracy_score
 
 
 # -----------------------------
-# 1️ Load Dataset
+# 1️⃣ Load Dataset
 # -----------------------------
 true_df = pd.read_csv("../data/True.csv")
 fake_df = pd.read_csv("../data/Fake.csv")
@@ -28,7 +28,7 @@ print("Total samples:", len(news))
 
 
 # -----------------------------
-# 2️ Text Cleaning Function
+# 2️⃣ Text Cleaning Function
 # -----------------------------
 def wordopt(text):
     text = text.lower()
@@ -45,14 +45,14 @@ news["text"] = news["text"].apply(wordopt)
 
 
 # -----------------------------
-# 3️ Features & Labels
+# 3️⃣ Features & Labels
 # -----------------------------
 X = news["text"]
 y = news["label"]
 
 
 # -----------------------------
-# 4️ Train-Test Split
+# 4️⃣ Train-Test Split
 # -----------------------------
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.3, random_state=42
@@ -63,7 +63,7 @@ print("Testing samples:", len(X_test))
 
 
 # -----------------------------
-# 5️ OPTIMIZED Vectorization
+# 5️⃣ OPTIMIZED Vectorization
 # -----------------------------
 vectorizer = TfidfVectorizer(
     stop_words="english",
@@ -77,7 +77,7 @@ X_test_vec = vectorizer.transform(X_test)
 
 
 # -----------------------------
-# 6️ Train Model
+# 6️⃣ Train Model
 # -----------------------------
 model = LogisticRegression(
     C=1.0,
@@ -89,7 +89,7 @@ model.fit(X_train_vec, y_train)
 
 
 # -----------------------------
-# 7️ Evaluate Model
+# 7️⃣ Evaluate Model
 # -----------------------------
 y_pred = model.predict(X_test_vec)
 
@@ -100,7 +100,7 @@ print(classification_report(y_test, y_pred))
 
 
 # -----------------------------
-# 8️ Save Optimized Model
+# 8️⃣ Save Optimized Model
 # -----------------------------
 joblib.dump(model, "fake_news_model_opt.pkl", compress=3)
 joblib.dump(vectorizer, "vectorizer_opt.pkl", compress=3)

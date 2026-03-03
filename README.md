@@ -15,6 +15,7 @@ The frontend will run on http://localhost:5173
 - MongoDB Atlas database
 - JWT-based authentication
 
+
 hosted on render aswell
 
 https://fake-news-detector-site.onrender.com
